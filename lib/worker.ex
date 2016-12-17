@@ -15,13 +15,17 @@ defmodule OtpMetex.Worker do
     GenServer.call(pid, :get_stats)
   end
 
+  def reset_stats(pid) do
+    GenServer.cast(pid, :reset_stats)
+  end
+
   ## Server callbacks
 
   def init(:ok) do
     {:ok, %{}}
   end
 
-  def handle_call({:location, location}, from, stats) do
+  def handle_call({:location, location}, _from, stats) do
     case temperature_of(location) do
       {:ok, temp} ->
         new_stats = update_stats(stats, location)
@@ -32,9 +36,14 @@ defmodule OtpMetex.Worker do
     end
   end
 
-  def handle_call(:get_stats, from, stats) do
+  def handle_call(:get_stats, _from, stats) do
     {:reply, stats, stats}
   end
+
+  def handle_cast(:reset_stats, _stats) do
+    {:noreply, %{}}
+  end
+
 
   ## Helper functions
   defp temperature_of(location) do
